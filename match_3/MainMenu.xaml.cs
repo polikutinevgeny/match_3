@@ -16,20 +16,18 @@ using System.Windows.Shapes;
 namespace match_3
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for MainMenu.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainMenu : UserControl
     {
-        public MainWindow()
+        public MainMenu()
         {
             InitializeComponent();
-            Switcher.PageSwitcher = this;
-            Switcher.Switch(new MainMenu());
         }
 
-        public void Navigate(UserControl nextPage)
+        private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            Content = nextPage;
+            Switcher.Switch(new GameInterface());
         }
     }
 }
