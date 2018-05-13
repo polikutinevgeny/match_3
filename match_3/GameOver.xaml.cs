@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,9 +21,13 @@ namespace match_3
     /// </summary>
     public partial class GameOver : UserControl
     {
-        public GameOver()
+        public int Points { get; }
+
+        public GameOver(int points)
         {
             InitializeComponent();
+            Points = points;
+            DataContext = this;
         }
 
         private void OkButton_OnClick(object sender, RoutedEventArgs e)

@@ -46,7 +46,7 @@ namespace match_3
                     Countdown -= 1;
                     if (Countdown == 0)
                     {
-                        Switcher.Switch(new GameOver());
+                        Switcher.Switch(new GameOver(Points));
                     }
                 }, Application.Current.Dispatcher);
         }

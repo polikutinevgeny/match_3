@@ -11,7 +11,12 @@
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
-        <Label Content="Game Over" HorizontalAlignment="Center" VerticalAlignment="Bottom"></Label>
-        <Button Name="OkButton" Content="Ok" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Center" Click="OkButton_OnClick"></Button>
+        <Label Content="{Binding Points}" ContentStringFormat="Points: {0}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               FontSize="32"></Label>
+        <Label Content="Game Over" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+               FontSize="32"></Label>
+        <Button Name="OkButton" Content="Ok" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Center" Click="OkButton_OnClick"
+                FontSize="32"></Button>
     </Grid>
 </UserControl>

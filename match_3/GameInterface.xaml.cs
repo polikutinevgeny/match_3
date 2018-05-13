@@ -24,7 +24,7 @@ namespace match_3
         {
             tile.Shape.Height = GameCanvas.Height / 8;
             tile.Shape.Width = GameCanvas.Width / 8;
-            tile.Shape.RenderTransform = 
+            tile.Shape.RenderTransform =
                 new ScaleTransform(1.0, 1.0, tile.Shape.Height / 2, tile.Shape.Width / 2);
             GameCanvas.Children.Add(tile.Shape);
             Canvas.SetTop(tile.Shape, tile.Top * tile.Shape.Height);
@@ -64,14 +64,18 @@ namespace match_3
                 RepeatBehavior = RepeatBehavior.Forever,
                 AutoReverse = true,
             };
-            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
-            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(
+                ScaleTransform.ScaleXProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(
+                ScaleTransform.ScaleYProperty, anim);
         }
 
         public void StopSelectionAnimation(Tile tile)
         {
-            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            tile.Shape.RenderTransform.BeginAnimation(
+                ScaleTransform.ScaleXProperty, null);
+            tile.Shape.RenderTransform.BeginAnimation(
+                ScaleTransform.ScaleYProperty, null);
         }
 
         private int _deleteAnimationRegister;
@@ -94,8 +98,10 @@ namespace match_3
                         DropAnimation, RegisterTile, UnregisterTile);
                 }
             };
-            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
-            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(
+                ScaleTransform.ScaleXProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(
+                ScaleTransform.ScaleYProperty, anim);
         }
 
         private int _successAnimationRegister;
@@ -180,6 +186,12 @@ namespace match_3
         private void GameCanvas_OnMouseLeftButtonDown(
             object sender, MouseButtonEventArgs e)
         {
+            if (_failAnimationRegister + _deleteAnimationRegister +
+                _successAnimationRegister + _dropAnimationRegister > 0)
+            {
+                return;
+            }
+
             if (e.OriginalSource is TileShape ts)
             {
                 var t = (Tile) ts.Tag;
