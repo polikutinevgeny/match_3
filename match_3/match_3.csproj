@@ -61,6 +61,7 @@
     <Compile Include="MainMenu.xaml.cs">
       <DependentUpon>MainMenu.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Switcher.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="TileShape.cs" />

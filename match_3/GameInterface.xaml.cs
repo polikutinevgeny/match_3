@@ -16,13 +16,15 @@ namespace match_3
         public GameInterface()
         {
             InitializeComponent();
-            _game = new Game(DeleteAnimation, RegisterTile);
+            _game = new Game(RegisterTile, UnregisterTile, DropAnimation);
         }
 
         public void RegisterTile(Tile tile)
         {
             tile.Shape.Height = GameCanvas.Height / 8;
             tile.Shape.Width = GameCanvas.Width / 8;
+            tile.Shape.RenderTransform = 
+                new ScaleTransform(1.0, 1.0, tile.Shape.Height / 2, tile.Shape.Width / 2);
             GameCanvas.Children.Add(tile.Shape);
             Canvas.SetTop(tile.Shape, tile.Top * tile.Shape.Height);
             Canvas.SetLeft(tile.Shape, tile.Left * tile.Shape.Width);
@@ -31,7 +33,7 @@ namespace match_3
 
         private int _dropAnimationRegister;
 
-        public void AnimateTileDrop(Tile tile)
+        public void DropAnimation(Tile tile)
         {
             _dropAnimationRegister++;
             var animTop = new DoubleAnimation
@@ -56,38 +58,43 @@ namespace match_3
             var anim = new DoubleAnimation
             {
                 From = 1.0,
-                To = 0.0,
-                Duration = TimeSpan.FromMilliseconds(500),
+                To = 0.8,
+                Duration = TimeSpan.FromMilliseconds(300),
                 RepeatBehavior = RepeatBehavior.Forever,
-                AutoReverse = true
+                AutoReverse = true,
             };
-            tile.Shape.BeginAnimation(OpacityProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        }
+
+        public void StopSelectionAnimation(Tile tile)
+        {
+            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, null);
         }
 
         private int _deleteAnimationRegister;
+
         public void DeleteAnimation(Tile tile)
         {
-            _deleteAnimationRegister++;
+            _deleteAnimationRegister += 2;
             var anim = new DoubleAnimation
             {
                 From = 1.0,
                 To = 0.0,
-                Duration = TimeSpan.FromMilliseconds(200),
+                Duration = TimeSpan.FromMilliseconds(300),
             };
             anim.Completed += delegate
             {
                 _deleteAnimationRegister--;
                 if (_deleteAnimationRegister == 0)
                 {
-                    _game.DeleteAndDropTiles(AnimateTileDrop, RegisterTile, UnregisterTile);
+                    _game.DeleteAndDropTiles(
+                        DropAnimation, RegisterTile, UnregisterTile);
                 }
             };
-            tile.Shape.BeginAnimation(OpacityProperty, anim);
-        }
-
-        public void StopSelectionAnimation(Tile tile)
-        {
-            tile.Shape.BeginAnimation(OpacityProperty, null);
+            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+            tile.Shape.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
         }
 
         private int _successAnimationRegister;
@@ -107,7 +114,8 @@ namespace match_3
             AnimateSwap(first, second, OnSuccessAnimationComplete);
         }
 
-        private void AnimateSwap(Tile first, Tile second, Action<object, EventArgs> onCompleted)
+        private void AnimateSwap(
+            Tile first, Tile second, Action<object, EventArgs> onCompleted)
         {
             var dt = Math.Sign(Math.Abs(first.Top - second.Top));
             var dl = Math.Sign(Math.Abs(first.Left - second.Left));
@@ -147,19 +155,18 @@ namespace match_3
         {
             _failAnimationRegister += 2;
             first.SwapCoordinates(ref second);
-            AnimateSwap(first, second, (o1, e1) =>
-            {
-                _failAnimationRegister--;
-                if (_failAnimationRegister == 0)
+            AnimateSwap(
+                first, second, (o1, e1) =>
                 {
-                    first.SwapCoordinates(ref second);
-                    _failAnimationRegister += 2;
-                    AnimateSwap(first, second, (o2, e2) =>
+                    _failAnimationRegister--;
+                    if (_failAnimationRegister == 0)
                     {
-                        _failAnimationRegister--;
-                    });
-                }
-            });
+                        first.SwapCoordinates(ref second);
+                        _failAnimationRegister += 2;
+                        AnimateSwap(
+                            first, second, (o2, e2) => { _failAnimationRegister--; });
+                    }
+                });
         }
 
         private void UnregisterTile(Tile tile)
@@ -169,7 +176,8 @@ namespace match_3
 
         private Tile _selected;
 
-        private void GameCanvas_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void GameCanvas_OnMouseLeftButtonDown(
+            object sender, MouseButtonEventArgs e)
         {
             if (e.OriginalSource is TileShape ts)
             {

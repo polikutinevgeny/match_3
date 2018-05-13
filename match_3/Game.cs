@@ -1,19 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Controls;
+using match_3.Annotations;
 
 namespace match_3
 {
-    public class Game
+    public class Game : INotifyPropertyChanged
     {
-        public Game(Action<Tile> deleteAnimation, Action<Tile> registerTile)
+        public int Points
+        {
+            get => _points;
+            set
+            {
+                _points = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Game(Action<Tile> registerTile, Action<Tile> unregisterTile, Action<Tile> dropAnimation)
         {
             FillBoard(registerTile);
-            RemoveMatches(deleteAnimation);
+            DeleteAndDropTiles(dropAnimation, registerTile, unregisterTile);
         }
 
         public void RemoveMatches(Action<Tile> deleteAnimation)
@@ -22,7 +35,6 @@ namespace match_3
             foreach (var match in lastMatches)
             {
                 deleteAnimation(match);
-//                match.Shape.StrokeThickness = 5.0;
             }
         }
 
@@ -34,7 +46,7 @@ namespace match_3
         public void FillBoard(Action<Tile> registerTileCallback)
         {
             var r = new Random();
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
@@ -47,7 +59,8 @@ namespace match_3
             }
         }
 
-        private List<Tile> lastMatches;
+        private List<Tile> lastMatches = new List<Tile>();
+        private int _points;
 
         public void TrySwapTiles(
             Tile first, Tile second, Action<Tile, Tile> successAnimCallback,
@@ -57,8 +70,10 @@ namespace match_3
             {
                 return;
             }
+
             Utility.Swap(
-                ref Board[first.Top + 8, first.Left], ref Board[second.Top + 8, second.Left]);
+                ref Board[first.Top + 8, first.Left],
+                ref Board[second.Top + 8, second.Left]);
             lastMatches = CheckMatches();
             if (lastMatches.Count > 0)
             {
@@ -68,7 +83,8 @@ namespace match_3
             else
             {
                 Utility.Swap(
-                    ref Board[first.Top + 8, first.Left], ref Board[second.Top + 8, second.Left]);
+                    ref Board[first.Top + 8, first.Left],
+                    ref Board[second.Top + 8, second.Left]);
                 failAnimCallback(first, second);
             }
         }
@@ -82,7 +98,9 @@ namespace match_3
             }
         }
 
-        public void DeleteAndDropTiles(Action<Tile> tileDropAnimation, Action<Tile> registerTile, Action<Tile> unregisterTile)
+        public void DeleteAndDropTiles(
+            Action<Tile> tileDropAnimation, Action<Tile> registerTile,
+            Action<Tile> unregisterTile)
         {
             DeleteMatches(unregisterTile);
             int[] dropLengths = new int[8];
@@ -108,6 +126,7 @@ namespace match_3
                     }
                 }
             }
+
             FillBoard(registerTile);
         }
 
@@ -138,6 +157,7 @@ namespace match_3
                         matches = 1;
                     }
                 }
+
                 if (matches >= 3)
                 {
                     for (int k = 1; k < matches + 1; k++)
@@ -194,6 +214,15 @@ namespace match_3
             }
 
             return result;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged(
+            [CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
