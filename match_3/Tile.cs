@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
 namespace match_3
 {
@@ -26,8 +21,7 @@ namespace match_3
             set => _left = value;
         }
 
-        public bool Deleting { get; set; }
-        public TileShape Shape { get; set; }
+        public TileShape Shape { get; }
 
         public bool Selected { get; set; }
 
@@ -36,7 +30,7 @@ namespace match_3
             Top = top;
             Left = left;
             Color = color;
-            Shape = new TileShape()
+            Shape = new TileShape
             {
                 Fill = new SolidColorBrush(color),
                 Stroke = new SolidColorBrush(Colors.Black),

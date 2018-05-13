@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Controls;
 using System.Windows.Threading;
 using match_3.Annotations;
 
 namespace match_3
 {
-    public class Game : INotifyPropertyChanged
+    public sealed class Game : INotifyPropertyChanged
     {
+        // ReSharper disable once MemberCanBePrivate.Global
         public int Points
         {
             get => _points;
@@ -25,6 +22,7 @@ namespace match_3
             }
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public int Countdown
         {
             get => _countdown;
@@ -53,36 +51,34 @@ namespace match_3
 
         public void RemoveMatches(Action<Tile> deleteAnimation)
         {
-            lastMatches = CheckMatches();
-            Points += lastMatches.Count;
-            foreach (var match in lastMatches)
+            _lastMatches = CheckMatches();
+            Points += _lastMatches.Count;
+            foreach (var match in _lastMatches)
             {
                 deleteAnimation(match);
             }
         }
 
-        public Tile[,] Board = new Tile[16, 8];
+        private readonly Tile[,] _board = new Tile[16, 8];
 
-        private Color[] _colors =
+        private readonly Color[] _colors =
             {Colors.Red, Colors.Green, Colors.Blue, Colors.LightYellow, Colors.RosyBrown};
 
         public void FillBoard(Action<Tile> registerTileCallback)
         {
             var r = new Random();
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
-                for (int j = 0; j < 8; j++)
+                for (var j = 0; j < 8; j++)
                 {
-                    if (Board[i, j] == null)
-                    {
-                        Board[i, j] = new Tile(i - 8, j, _colors[r.Next(_colors.Length)]);
-                        registerTileCallback(Board[i, j]);
-                    }
+                    if (_board[i, j] != null) continue;
+                    _board[i, j] = new Tile(i - 8, j, _colors[r.Next(_colors.Length)]);
+                    registerTileCallback(_board[i, j]);
                 }
             }
         }
 
-        private List<Tile> lastMatches = new List<Tile>();
+        private List<Tile> _lastMatches = new List<Tile>();
         private int _points;
         private int _countdown = 60;
 
@@ -96,10 +92,10 @@ namespace match_3
             }
 
             Utility.Swap(
-                ref Board[first.Top + 8, first.Left],
-                ref Board[second.Top + 8, second.Left]);
-            lastMatches = CheckMatches();
-            if (lastMatches.Count > 0)
+                ref _board[first.Top + 8, first.Left],
+                ref _board[second.Top + 8, second.Left]);
+            _lastMatches = CheckMatches();
+            if (_lastMatches.Count > 0)
             {
                 first.SwapCoordinates(ref second);
                 successAnimCallback(first, second);
@@ -107,18 +103,18 @@ namespace match_3
             else
             {
                 Utility.Swap(
-                    ref Board[first.Top + 8, first.Left],
-                    ref Board[second.Top + 8, second.Left]);
+                    ref _board[first.Top + 8, first.Left],
+                    ref _board[second.Top + 8, second.Left]);
                 failAnimCallback(first, second);
             }
         }
 
-        public void DeleteMatches(Action<Tile> unregisterTile)
+        private void DeleteMatches(Action<Tile> unregisterTile)
         {
-            foreach (var match in lastMatches)
+            foreach (var match in _lastMatches)
             {
-                unregisterTile(Board[match.Top + 8, match.Left]);
-                Board[match.Top + 8, match.Left] = null;
+                unregisterTile(_board[match.Top + 8, match.Left]);
+                _board[match.Top + 8, match.Left] = null;
             }
         }
 
@@ -127,26 +123,26 @@ namespace match_3
             Action<Tile> unregisterTile)
         {
             DeleteMatches(unregisterTile);
-            int[] dropLengths = new int[8];
+            var dropLengths = new int[8];
             for (int i = 16 - 1; i >= 0; i--)
             {
-                for (int j = 0; j < 8; j++)
+                for (var j = 0; j < 8; j++)
                 {
-                    if (Board[i, j] == null)
+                    if (_board[i, j] == null)
                     {
                         dropLengths[j]++;
                     }
                     else if (dropLengths[j] != 0)
                     {
-                        if (Board[i + dropLengths[j], j] != null)
+                        if (_board[i + dropLengths[j], j] != null)
                         {
                             throw new InvalidOperationException(
                                 "It is not null where tile is dropped");
                         }
 
-                        Utility.Swap(ref Board[i, j], ref Board[i + dropLengths[j], j]);
-                        Board[i + dropLengths[j], j].Top = i + dropLengths[j] - 8;
-                        tileDropAnimation(Board[i + dropLengths[j], j]);
+                        Utility.Swap(ref _board[i, j], ref _board[i + dropLengths[j], j]);
+                        _board[i + dropLengths[j], j].Top = i + dropLengths[j] - 8;
+                        tileDropAnimation(_board[i + dropLengths[j], j]);
                     }
                 }
             }
@@ -154,16 +150,16 @@ namespace match_3
             FillBoard(registerTile);
         }
 
-        public List<Tile> CheckMatches()
+        private List<Tile> CheckMatches()
         {
-            bool[,] delete = new bool[16, 8];
-            for (int i = 8; i < 16; i++)
+            var delete = new bool[16, 8];
+            for (var i = 8; i < 16; i++)
             {
-                int matches = 1;
-                var color = Board[i, 0].Color;
-                for (int j = 1; j < 8; j++)
+                var matches = 1;
+                var color = _board[i, 0].Color;
+                for (var j = 1; j < 8; j++)
                 {
-                    if (Board[i, j].Color == color)
+                    if (_board[i, j].Color == color)
                     {
                         ++matches;
                     }
@@ -171,33 +167,31 @@ namespace match_3
                     {
                         if (matches >= 3)
                         {
-                            for (int k = 1; k < matches + 1; k++)
+                            for (var k = 1; k < matches + 1; k++)
                             {
                                 delete[i, j - k] = true;
                             }
                         }
 
-                        color = Board[i, j].Color;
+                        color = _board[i, j].Color;
                         matches = 1;
                     }
                 }
 
-                if (matches >= 3)
+                if (matches < 3) continue;
+                for (var k = 1; k < matches + 1; k++)
                 {
-                    for (int k = 1; k < matches + 1; k++)
-                    {
-                        delete[i, 8 - k] = true;
-                    }
+                    delete[i, 8 - k] = true;
                 }
             }
 
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
-                int matches = 1;
-                var color = Board[8, i].Color;
-                for (int j = 9; j < 16; j++)
+                var matches = 1;
+                var color = _board[8, i].Color;
+                for (var j = 9; j < 16; j++)
                 {
-                    if (Board[j, i].Color == color)
+                    if (_board[j, i].Color == color)
                     {
                         ++matches;
                     }
@@ -205,34 +199,32 @@ namespace match_3
                     {
                         if (matches >= 3)
                         {
-                            for (int k = 1; k < matches + 1; k++)
+                            for (var k = 1; k < matches + 1; k++)
                             {
                                 delete[j - k, i] = true;
                             }
                         }
 
-                        color = Board[j, i].Color;
+                        color = _board[j, i].Color;
                         matches = 1;
                     }
                 }
-
-                if (matches >= 3)
+                
+                if (matches < 3) continue;
+                for (var k = 1; k < matches + 1; k++)
                 {
-                    for (int k = 1; k < matches + 1; k++)
-                    {
-                        delete[16 - k, i] = true;
-                    }
+                    delete[16 - k, i] = true;
                 }
             }
 
-            List<Tile> result = new List<Tile>();
-            for (int i = 8; i < 16; i++)
+            var result = new List<Tile>();
+            for (var i = 8; i < 16; i++)
             {
-                for (int j = 0; j < 8; j++)
+                for (var j = 0; j < 8; j++)
                 {
                     if (delete[i, j])
                     {
-                        result.Add(Board[i, j]);
+                        result.Add(_board[i, j]);
                     }
                 }
             }
@@ -243,7 +235,7 @@ namespace match_3
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged(
+        private void OnPropertyChanged(
             [CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

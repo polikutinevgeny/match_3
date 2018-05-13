@@ -15,7 +15,7 @@
                HorizontalAlignment="Center" VerticalAlignment="Center"
                FontSize="32"></Label>
         <Label Content="Game Over" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-               FontSize="32"></Label>
+               FontSize="32" Grid.Row="0"></Label>
         <Button Name="OkButton" Content="Ok" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Center" Click="OkButton_OnClick"
                 FontSize="32"></Button>
     </Grid>

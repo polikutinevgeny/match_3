@@ -11,7 +11,7 @@ namespace match_3
     /// </summary>
     public partial class GameInterface : UserControl
     {
-        private Game _game;
+        private readonly Game _game;
 
         public GameInterface()
         {
@@ -20,7 +20,7 @@ namespace match_3
             DataContext = _game;
         }
 
-        public void RegisterTile(Tile tile)
+        private void RegisterTile(Tile tile)
         {
             tile.Shape.Height = GameCanvas.Height / 8;
             tile.Shape.Width = GameCanvas.Width / 8;
@@ -34,7 +34,7 @@ namespace match_3
 
         private int _dropAnimationRegister;
 
-        public void DropAnimation(Tile tile)
+        private void DropAnimation(Tile tile)
         {
             _dropAnimationRegister++;
             var animTop = new DoubleAnimation
@@ -45,16 +45,14 @@ namespace match_3
             animTop.Completed += delegate
             {
                 _dropAnimationRegister--;
-                if (_dropAnimationRegister == 0)
-                {
-                    _game.FillBoard(RegisterTile);
-                    _game.RemoveMatches(DeleteAnimation);
-                }
+                if (_dropAnimationRegister != 0) return;
+                _game.FillBoard(RegisterTile);
+                _game.RemoveMatches(DeleteAnimation);
             };
             tile.Shape.BeginAnimation(Canvas.TopProperty, animTop);
         }
 
-        public void StartSelectionAnimation(Tile tile)
+        private void StartSelectionAnimation(Tile tile)
         {
             var anim = new DoubleAnimation
             {
@@ -70,7 +68,7 @@ namespace match_3
                 ScaleTransform.ScaleYProperty, anim);
         }
 
-        public void StopSelectionAnimation(Tile tile)
+        private void StopSelectionAnimation(Tile tile)
         {
             tile.Shape.RenderTransform.BeginAnimation(
                 ScaleTransform.ScaleXProperty, null);
@@ -80,7 +78,7 @@ namespace match_3
 
         private int _deleteAnimationRegister;
 
-        public void DeleteAnimation(Tile tile)
+        private void DeleteAnimation(Tile tile)
         {
             _deleteAnimationRegister += 2;
             var anim = new DoubleAnimation
@@ -115,7 +113,7 @@ namespace match_3
             }
         }
 
-        public void SuccessAnimation(Tile first, Tile second)
+        private void SuccessAnimation(Tile first, Tile second)
         {
             _successAnimationRegister += 2;
             AnimateSwap(first, second, OnSuccessAnimationComplete);
@@ -158,7 +156,7 @@ namespace match_3
 
         private int _failAnimationRegister;
 
-        public void FailAnimation(Tile first, Tile second)
+        private void FailAnimation(Tile first, Tile second)
         {
             _failAnimationRegister += 2;
             first.SwapCoordinates(ref second);
@@ -166,13 +164,11 @@ namespace match_3
                 first, second, (o1, e1) =>
                 {
                     _failAnimationRegister--;
-                    if (_failAnimationRegister == 0)
-                    {
-                        first.SwapCoordinates(ref second);
-                        _failAnimationRegister += 2;
-                        AnimateSwap(
-                            first, second, (o2, e2) => { _failAnimationRegister--; });
-                    }
+                    if (_failAnimationRegister != 0) return;
+                    first.SwapCoordinates(ref second);
+                    _failAnimationRegister += 2;
+                    AnimateSwap(
+                        first, second, (o2, e2) => { _failAnimationRegister--; });
                 });
         }
 
@@ -192,31 +188,29 @@ namespace match_3
                 return;
             }
 
-            if (e.OriginalSource is TileShape ts)
+            if (!(e.OriginalSource is TileShape ts)) return;
+            var t = (Tile) ts.Tag;
+            if (t.Selected)
             {
-                var t = (Tile) ts.Tag;
-                if (t.Selected)
+                t.Selected = false;
+                StopSelectionAnimation(t);
+                _selected = null;
+            }
+            else
+            {
+                if (_selected != null)
                 {
-                    t.Selected = false;
-                    StopSelectionAnimation(t);
+                    var tempTile = _selected;
+                    _selected.Selected = false;
+                    StopSelectionAnimation(_selected);
                     _selected = null;
+                    _game.TrySwapTiles(t, tempTile, SuccessAnimation, FailAnimation);
                 }
                 else
                 {
-                    if (_selected != null)
-                    {
-                        var tempTile = _selected;
-                        _selected.Selected = false;
-                        StopSelectionAnimation(_selected);
-                        _selected = null;
-                        _game.TrySwapTiles(t, tempTile, SuccessAnimation, FailAnimation);
-                    }
-                    else
-                    {
-                        t.Selected = true;
-                        _selected = t;
-                        StartSelectionAnimation(t);
-                    }
+                    t.Selected = true;
+                    _selected = t;
+                    StartSelectionAnimation(t);
                 }
             }
         }
