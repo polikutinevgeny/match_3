@@ -17,6 +17,7 @@ namespace match_3
         {
             InitializeComponent();
             _game = new Game(RegisterTile, UnregisterTile, DropAnimation);
+            DataContext = _game;
         }
 
         public void RegisterTile(Tile tile)

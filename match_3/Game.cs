@@ -5,8 +5,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using match_3.Annotations;
 
 namespace match_3
@@ -23,15 +25,36 @@ namespace match_3
             }
         }
 
+        public int Countdown
+        {
+            get => _countdown;
+            set
+            {
+                _countdown = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Game(Action<Tile> registerTile, Action<Tile> unregisterTile, Action<Tile> dropAnimation)
         {
             FillBoard(registerTile);
             DeleteAndDropTiles(dropAnimation, registerTile, unregisterTile);
+            var gameTimer = new DispatcherTimer(
+                new TimeSpan(0, 0, 1), DispatcherPriority.Normal,
+                delegate
+                {
+                    Countdown -= 1;
+                    if (Countdown == 0)
+                    {
+                        Switcher.Switch(new GameOver());
+                    }
+                }, Application.Current.Dispatcher);
         }
 
         public void RemoveMatches(Action<Tile> deleteAnimation)
         {
             lastMatches = CheckMatches();
+            Points += lastMatches.Count;
             foreach (var match in lastMatches)
             {
                 deleteAnimation(match);
@@ -61,6 +84,7 @@ namespace match_3
 
         private List<Tile> lastMatches = new List<Tile>();
         private int _points;
+        private int _countdown = 60;
 
         public void TrySwapTiles(
             Tile first, Tile second, Action<Tile, Tile> successAnimCallback,

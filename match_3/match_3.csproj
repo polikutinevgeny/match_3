@@ -58,6 +58,9 @@
     <Compile Include="GameInterface.xaml.cs">
       <DependentUpon>GameInterface.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GameOver.xaml.cs">
+      <DependentUpon>GameOver.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MainMenu.xaml.cs">
       <DependentUpon>MainMenu.xaml</DependentUpon>
     </Compile>
@@ -67,6 +70,10 @@
     <Compile Include="TileShape.cs" />
     <Compile Include="Utility.cs" />
     <Page Include="GameInterface.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GameOver.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
