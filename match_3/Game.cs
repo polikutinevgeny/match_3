@@ -37,7 +37,7 @@ namespace match_3
         {
             FillBoard(registerTile);
             DeleteAndDropTiles(dropAnimation, registerTile, unregisterTile);
-            var gameTimer = new DispatcherTimer(
+            _gameTimer = new DispatcherTimer(
                 new TimeSpan(0, 0, 1), DispatcherPriority.Normal,
                 delegate
                 {
@@ -81,6 +81,7 @@ namespace match_3
         private List<Tile> _lastMatches = new List<Tile>();
         private int _points;
         private int _countdown = 60;
+        private readonly DispatcherTimer _gameTimer;
 
         public void TrySwapTiles(
             Tile first, Tile second, Action<Tile, Tile> successAnimCallback,
